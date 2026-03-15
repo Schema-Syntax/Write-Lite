@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Write</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232e2a3a'/><path d='M8 22 L14 8 L18 18 L21 13 L26 22 Z' fill='none' stroke='%239a86c0' stroke-width='1.5' stroke-linejoin='round'/></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #2e2a3a;
+    --surface: #3a3548;
+    --surface2: #443f54;
+    --border: rgba(232,226,240,0.12);
+    --border2: rgba(232,226,240,0.22);
+    --text: #e8e2f0;
+    --text2: #b0a8c8;
+    --text3: #786e90;
+    --accent: #9a86c0;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --transition: 200ms ease;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .app {
+    padding: 2rem 1.25rem 4rem;
+    max-width: 660px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+  }
+  .header-text h1 {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+  .header-text p {
+    font-size: 13px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* ── SETTINGS ── */
+  .settings-wrap { position: relative; }
+  .settings-btn {
+    background: none;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 7px 11px;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition);
+  }
+  .settings-btn:hover { color: var(--text); border-color: var(--accent); }
+  .settings-panel {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 40px;
+    background: var(--surface);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    width: 210px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .settings-panel.open { display: block; }
+  .settings-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+  .theme-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .theme-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .theme-swatch:hover { transform: scale(1.15); }
+  .theme-swatch.active { border-color: var(--text); transform: scale(1.1); }
+
+  /* ── STATUS ── */
+  .db-status {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 1.25rem;
+    min-height: 16px;
+    transition: opacity 0.4s;
+  }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: inherit;
+  }
+  .tab:hover { background: var(--surface); color: var(--text); }
+  .tab.active { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
+
+  /* ── DRAW BUTTON ── */
+  .draw-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: inherit;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.01em;
+  }
+  .draw-btn:hover { background: var(--surface); border-color: var(--accent); }
+  .draw-btn:active { transform: scale(0.995); }
+
+  /* ── PROMPT CARD ── */
+  .prompt-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: background var(--transition);
+  }
+  .type-badge {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  /* Scene */
+  .scene-words { display: flex; flex-wrap: wrap; gap: 14px; }
+  .slot-word { display: inline-flex; flex-direction: column; gap: 3px; }
+  .slot-label {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .slot-value { font-size: 19px; font-weight: 500; color: var(--text); }
+
+  /* Scenario */
+  .scenario-text { font-size: 17px; line-height: 1.6; color: var(--text); }
+
+  /* Sparks */
+  .sparks-words { display: flex; flex-wrap: wrap; gap: 8px; }
+  .spark-word {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    padding: 5px 12px;
+    border: 0.5px solid var(--border2);
+    border-radius: 20px;
+    transition: border-color var(--transition);
+  }
+
+  /* ── PROMPT ACTIONS ── */
+  .prompt-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 0.5px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .action-btn {
+    padding: 5px 13px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+  }
+  .action-btn:hover { background: var(--surface2); color: var(--text); }
+  .action-btn.used { color: #6ec98a; border-color: rgba(110,201,138,0.35); }
+  .notice {
+    font-size: 12px;
+    color: #6ec98a;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .notice.show { opacity: 1; }
+
+  /* ── WRITE AREA ── */
+  .write-area { display: none; margin-top: 14px; }
+  .write-area.visible { display: block; }
+  .write-area textarea {
+    width: 100%;
+    min-height: 160px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: var(--surface2);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--transition);
+  }
+  .write-area textarea:focus { border-color: var(--accent); }
+  .write-area textarea::placeholder { color: var(--text3); }
+  .export-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+  .export-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+  }
+  .export-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* ── HISTORY ── */
+  .history-section { margin-top: 2rem; }
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .history-title {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .clear-btn {
+    font-size: 11px;
+    color: var(--text3);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 2px 8px;
+    border-radius: var(--radius);
+    transition: all var(--transition);
+  }
+  .clear-btn:hover { color: var(--text2); background: var(--surface); }
+  .history-item {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--surface);
+  }
+  .hist-text { flex: 1; line-height: 1.5; }
+  .hist-meta { font-size: 11px; color: var(--text3); white-space: nowrap; margin-top: 2px; }
+
+  /* ── EMPTY / STATUS ── */
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .app { padding: 1.25rem 1rem 3rem; }
+    .header-text h1 { font-size: 20px; }
+    .slot-value { font-size: 17px; }
+    .scenario-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-text">
+      <h1>Write</h1>
+      <p>A quiet tool for writing inspiration</p>
+    </div>
+    <div class="settings-wrap">
+      <button class="settings-btn" id="settingsBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Theme
+      </button>
+      <div class="settings-panel" id="settingsPanel">
+        <div class="settings-label">Choose a theme</div>
+        <div class="theme-swatches" id="themeSwatches"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="db-status" id="dbStatus"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="all">All</button>
+    <button class="tab" data-tab="scene">Scenes</button>
+    <button class="tab" data-tab="scenario">Scenarios</button>
+    <button class="tab" data-tab="sparks">Sparks</button>
+  </div>
+
+  <button class="draw-btn" id="drawBtn">Draw a prompt</button>
+
+  <div id="promptArea"></div>
+  <div id="historyArea"></div>
+</div>
+
+<script>
+// ── THEMES ────────────────────────────────────────────────────────────
+const THEMES = [
+  { id:'parchment', label:'Warm parchment', swatch:'#f5f0e8',
+    bg:'#f5f0e8', surface:'#ede7d9', surface2:'#e4dece',
+    border:'rgba(46,42,36,0.1)', border2:'rgba(46,42,36,0.2)',
+    text:'#2e2a24', text2:'#6b5f4a', text3:'#a0907a', accent:'#9a7a4a' },
+  { id:'sage', label:'Soft sage', swatch:'#eef2ec',
+    bg:'#eef2ec', surface:'#e2e8df', surface2:'#d5ddd1',
+    border:'rgba(37,46,34,0.1)', border2:'rgba(37,46,34,0.2)',
+    text:'#252e22', text2:'#4a5e44', text3:'#7a9072', accent:'#5a7a50' },
+  { id:'slate', label:'Dusty slate', swatch:'#dde2e8',
+    bg:'#dde2e8', surface:'#cfd6de', surface2:'#c2cad4',
+    border:'rgba(30,37,48,0.1)', border2:'rgba(30,37,48,0.2)',
+    text:'#1e2530', text2:'#3a4d5e', text3:'#6a8090', accent:'#4a7090' },
+  { id:'dusk', label:'Muted dusk', swatch:'#2e2a3a',
+    bg:'#2e2a3a', surface:'#3a3548', surface2:'#443f54',
+    border:'rgba(232,226,240,0.12)', border2:'rgba(232,226,240,0.22)',
+    text:'#e8e2f0', text2:'#b0a8c8', text3:'#786e90', accent:'#9a86c0' },
+  { id:'ink', label:'Deep ink', swatch:'#141418',
+    bg:'#141418', surface:'#1e1e24', surface2:'#28282f',
+    border:'rgba(228,224,216,0.1)', border2:'rgba(228,224,216,0.18)',
+    text:'#e4e0d8', text2:'#a09890', text3:'#605850', accent:'#c8a96e' }
+];
+
+function applyTheme(id) {
+  const t = THEMES.find(x => x.id === id) || THEMES[3];
+  const r = document.documentElement.style;
+  ['bg','surface','surface2','border','border2','text','text2','text3','accent'].forEach(k => {
+    r.setProperty('--' + k, t[k]);
+  });
+  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.id === id));
+  try { localStorage.setItem('write_theme', id); } catch(e) {}
+}
+
+function buildSwatches() {
+  document.getElementById('themeSwatches').innerHTML = THEMES.map(t =>
+    `<div class="theme-swatch" data-id="${t.id}" style="background:${t.swatch}" title="${t.label}"></div>`
+  ).join('');
+  document.querySelectorAll('.theme-swatch').forEach(s => {
+    s.addEventListener('click', () => applyTheme(s.dataset.id));
+  });
+}
+
+document.getElementById('settingsBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('settingsPanel').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  document.getElementById('settingsPanel').classList.remove('open');
+});
+
+// ── DATA ──────────────────────────────────────────────────────────────
+const SLOTS = {
+  place:      ['forest','cathedral','harbor','rooftop','basement','marketplace','lighthouse','cave','train station','ruins','garden','fairground','kitchen','library','beach'],
+  character:  ['stranger','elder','child','soldier','merchant','healer','outcast','twin','wanderer','thief','inventor','dreamer','jester','rival','neighbor'],
+  object:     ['lantern','letter','key','map','mirror','coin','weapon','journal','mask','clock','teacup','kite','photograph','umbrella','seed'],
+  mood:       ['tense','melancholic','urgent','mysterious','hopeful','eerie','restless','resigned','electric','tender','playful','jubilant','wistful','absurd','warm'],
+  protagonist:['a disgraced knight','a blind cartographer','a grieving mother','a fugitive scholar','a reformed thief','a retired performer','a curious child','an accidental hero','a lovesick inventor','a forgetful librarian'],
+  situation:  ['discovers a sealed room','receives a message from the dead','is mistaken for someone else','finds an object that shouldn\'t exist','overhears a confession','wins something they never wanted','loses something they never knew they had','makes a promise they can\'t keep','stumbles into a celebration','tells a lie that becomes true'],
+  setting:    ['in a city under siege','at the edge of a known map','during a funeral','on the last night before exile','in a place they swore never to return to','on the morning of a wedding','at the end of a long journey','during an unexpected storm','in a town that seems too perfect','on a perfectly ordinary Tuesday'],
+  complication:['the only witness is a child','time is running out','the truth would destroy someone they love','they are being watched','nothing is what it appears','everyone else finds it funny','the solution is embarrassingly simple','the wrong person gets the credit','they are having the best day of their life','joy and grief arrive at the same moment'],
+  words:      ['threshold','ember','hollow','drift','signal','fracture','remnant','tide','silence','veil','current','shadow','bloom','rust','echo','splinter','grain','descent','mirror','ash','ripple','golden','stumble','feast','ribbon','laughter','detour','spark','unravel','unexpected','gentle','peculiar','shimmer','tangled','ordinary','flourish','hum','borrowed','wander','bright']
+};
+
+const TEMPLATES = [
+  { text: '[protagonist] [situation] [setting], but [complication].' },
+  { text: 'When [protagonist] [situation], everything they believed about [setting] begins to unravel — and [complication].' },
+  { text: 'It should have been a simple day. Then [protagonist] [situation] [setting], and [complication].' }
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let db = null;
+let drawCounts = {};
+let history = [];
+let currentTab = 'all';
+let currentPrompt = null;
+
+// ── INDEXEDDB ─────────────────────────────────────────────────────────
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('write_app', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
+      if (!d.objectStoreNames.contains('history')) {
+        d.createObjectStore('history', { keyPath: 'id', autoIncrement: true }).createIndex('ts', 'ts');
+      }
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function dbGet(s, k) { return new Promise((res, rej) => { const r = db.transaction(s,'readonly').objectStore(s).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function dbPut(s, v, k) { return new Promise((res, rej) => { const tx = db.transaction(s,'readwrite'); const r = k !== undefined ? tx.objectStore(s).put(v,k) : tx.objectStore(s).put(v); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function dbGetAll(s) { return new Promise((res, rej) => { const r = db.transaction(s,'readonly').objectStore(s).getAll(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function dbClear(s) { return new Promise((res, rej) => { const r = db.transaction(s,'readwrite').objectStore(s).clear(); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
+
+async function loadState() {
+  try {
+    const savedTheme = localStorage.getItem('write_theme') || 'dusk';
+    applyTheme(savedTheme);
+    db = await openDB();
+    const dc = await dbGet('meta', 'drawCounts');
+    if (dc) drawCounts = dc;
+    history = (await dbGetAll('history')).sort((a, b) => b.ts - a.ts);
+    setStatus('History restored.');
+    renderHistory();
+  } catch(e) {
+    setStatus('Session only — IndexedDB unavailable.');
+  }
+}
+
+function setStatus(msg) {
+  const el = document.getElementById('dbStatus');
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+// ── DRAW LOGIC ────────────────────────────────────────────────────────
+function weightedPick(arr, key) {
+  const w = arr.map(v => ({ v, w: 1 / (1 + (drawCounts[key + ':' + v] || 0)) }));
+  const total = w.reduce((s, x) => s + x.w, 0);
+  let r = Math.random() * total;
+  for (const x of w) { r -= x.w; if (r <= 0) return x.v; }
+  return w[w.length - 1].v;
+}
+
+function markDrawn(key, val) {
+  const k = key + ':' + val;
+  drawCounts[k] = (drawCounts[k] || 0) + 1;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── DRAW ──────────────────────────────────────────────────────────────
+document.getElementById('drawBtn').addEventListener('click', draw);
+
+async function draw() {
+  const types = currentTab === 'all' ? ['scene','scenario','sparks'] : [currentTab];
+  const type = types[Math.floor(Math.random() * types.length)];
+  let prompt;
+
+  if (type === 'scene') {
+    const drawn = {};
+    ['place','character','object','mood'].forEach(s => {
+      drawn[s] = weightedPick(SLOTS[s], s);
+      markDrawn(s, drawn[s]);
+    });
+    prompt = { type: 'scene', drawn, text: Object.values(drawn).join(' · '), ts: Date.now(), used: false };
+
+  } else if (type === 'scenario') {
+    const tpl = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+    const drawn = {};
+    ['protagonist','situation','setting','complication'].forEach(s => {
+      drawn[s] = weightedPick(SLOTS[s], s);
+      markDrawn(s, drawn[s]);
+    });
+    let text = tpl.text;
+    Object.entries(drawn).forEach(([s, v]) => { text = text.replace('[' + s + ']', v); });
+    prompt = { type: 'scenario', text, ts: Date.now(), used: false };
+
+  } else {
+    const pool = [...SLOTS.words];
+    const picked = [];
+    for (let i = 0; i < 5; i++) {
+      const v = weightedPick(pool.filter(w => !picked.includes(w)), 'words');
+      picked.push(v);
+      markDrawn('words', v);
+    }
+    prompt = { type: 'sparks', words: picked, text: picked.join(' · '), ts: Date.now(), used: false };
+  }
+
+  currentPrompt = prompt;
+  history.unshift(prompt);
+  if (db) {
+    await dbPut('meta', drawCounts, 'drawCounts');
+    await dbPut('history', prompt);
+  }
+  renderPrompt(prompt);
+  renderHistory();
+}
+
+// ── RENDER PROMPT ─────────────────────────────────────────────────────
+function renderPrompt(p) {
+  let inner = '';
+  if (p.type === 'scene') {
+    inner = `<div class="scene-words">${
+      Object.entries(p.drawn).map(([k, v]) =>
+        `<span class="slot-word"><span class="slot-label">${k}</span><span class="slot-value">${v}</span></span>`
+      ).join('')
+    }</div>`;
+  } else if (p.type === 'scenario') {
+    inner = `<div class="scenario-text">${p.text}</div>`;
+  } else {
+    inner = `<div class="sparks-words">${p.words.map(w => `<span class="spark-word">${w}</span>`).join('')}</div>`;
+  }
+
+  document.getElementById('promptArea').innerHTML = `
+    <div class="prompt-card">
+      <div class="type-badge">${p.type}</div>
+      ${inner}
+      <div class="prompt-actions">
+        <button class="action-btn" id="usedBtn">Mark as used</button>
+        <button class="action-btn" id="writeBtn">Write here</button>
+        <button class="action-btn" id="dismissBtn">Dismiss</button>
+        <span class="notice" id="notice"></span>
+      </div>
+      <div class="write-area" id="writeArea">
+        <textarea placeholder="Write your response here…" id="writeText"></textarea>
+        <div class="export-row"><button class="export-btn" id="exportBtn">Export .txt</button></div>
+      </div>
+    </div>`;
+
+  document.getElementById('usedBtn').addEventListener('click', markUsed);
+  document.getElementById('writeBtn').addEventListener('click', toggleWrite);
+  document.getElementById('dismissBtn').addEventListener('click', dismissPrompt);
+  document.getElementById('exportBtn').addEventListener('click', exportTxt);
+}
+
+async function markUsed() {
+  if (history[0]) {
+    history[0].used = true;
+    if (db && history[0].id) await dbPut('history', history[0]);
+  }
+  const btn = document.getElementById('usedBtn');
+  if (btn) { btn.textContent = 'Used'; btn.classList.add('used'); }
+  renderHistory();
+}
+
+function dismissPrompt() {
+  history.shift();
+  document.getElementById('promptArea').innerHTML = '<div class="empty-state">Dismissed. Draw another.</div>';
+  renderHistory();
+}
+
+function toggleWrite() {
+  const wa = document.getElementById('writeArea');
+  if (wa) wa.classList.toggle('visible');
+}
+
+function exportTxt() {
+  const text = document.getElementById('writeText')?.value || '';
+  const promptText = currentPrompt?.text || '';
+  const content = `Prompt (${currentPrompt?.type || ''}):\n${promptText}\n\n---\n\n${text}`;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'write-' + new Date().toISOString().slice(0, 10) + '.txt';
+  a.click();
+  const n = document.getElementById('notice');
+  if (n) { n.textContent = 'exported'; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 2000); }
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────
+async function clearHistory() {
+  history = [];
+  drawCounts = {};
+  if (db) { await dbClear('history'); await dbPut('meta', {}, 'drawCounts'); }
+  renderHistory();
+}
+
+function renderHistory() {
+  const visible = history.filter(h => !h.dismissed).slice(0, 10);
+  if (!visible.length) { document.getElementById('historyArea').innerHTML = ''; return; }
+  document.getElementById('historyArea').innerHTML = `
+    <div class="history-section">
+      <div class="history-header">
+        <span class="history-title">Recent draws</span>
+        <button class="clear-btn" id="clearBtn">Clear history</button>
+      </div>
+      ${visible.map(h => `
+        <div class="history-item">
+          <span class="hist-text">${h.text}${h.used ? ' ✓' : ''}</span>
+          <span class="hist-meta">${h.type}</span>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('clearBtn').addEventListener('click', clearHistory);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+buildSwatches();
+loadState();
+</script>
+</body>
+</html>
