@@ -1,4 +1,4 @@
-# Write
+# Write Lite
 
 A quiet tool for writing inspiration. No accounts, no setup, no server — just open the file and go. Everything saves to your browser's IndexedDB automatically.
 
@@ -36,6 +36,8 @@ Five random words from a curated pool. No structure, no prose — just raw mater
 - **Five themes** — Warm Parchment, Soft Sage, Dusty Slate, Muted Dusk, Deep Ink
 - **Persistent** — draw history and theme choice survive page reloads via IndexedDB and localStorage
 - **Single file** — one `write.html`, no build tools, no frameworks, no backend
+
+![Write-Lite preview](write-lite.png)
 
 ---
 
